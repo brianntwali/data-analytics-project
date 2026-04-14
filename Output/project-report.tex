@@ -1,0 +1,325 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+  11pt,
+]{article}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Exploring the Effects of Pretrial Supervision Levels on Defendant Outcomes},
+  pdfauthor={Brian Ntwali},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Exploring the Effects of Pretrial Supervision Levels on Defendant
+Outcomes}
+\author{Brian Ntwali}
+\date{2026-04-14}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}\label{introduction}
+
+This project examines how harsher pretrial supervision levels are
+associated with later defendant outcomes. More specifically, I study
+whether defendants assigned to more intensive forms of supervision
+appear more likely to experience outcomes such as failure to appear in
+court, a new arrest during the pretrial period, and sentencing. The
+broader motivation is that pretrial supervision is meant to manage risk
+while avoiding unnecessary detention, but in practice harsher
+supervision may also carry burdens that affect defendants' behavior and
+case trajectories. Understanding these patterns is an important first
+step before moving to a more formal causal design.
+
+My working question is whether more restrictive supervision is
+associated with worse or better defendant outcomes, and whether these
+patterns differ between people who are released and people who remain
+detained. At this stage, the goal is exploratory rather than causal. The
+analysis is intended to document the structure of the data, describe the
+outcome variables, and visualize how outcomes vary across supervision
+categories and judges.
+
+The underlying data come from Montana pretrial case records. The cleaned
+dataset is at the \textbf{case-defendant level}, meaning that each row
+corresponds to a particular defendant in a particular case. This
+structure is appropriate for my current descriptive analysis because the
+outcomes of interest, such as failure to appear, new arrest, and
+sentencing, are tied to defendant-case histories rather than to broader
+aggregates.
+
+\section{Data and Sample
+Construction}\label{data-and-sample-construction}
+
+The analysis begins with a raw case-level administrative file that
+includes identifiers, court and judge information, dates, bond
+information, release decisions, and disposition fields. I first
+standardized variable names, corrected an incorrectly named case-number
+variable, and removed a redundant defendant identifier. I then
+restricted the sample to the subset of cases most relevant for analyzing
+pretrial supervision decisions.
+
+Several filtering decisions were made to improve data quality and
+comparability. I excluded caseloads that program staff indicated were
+not implemented consistently, as well as cases that never meaningfully
+used the PSA process. I removed observations marked for deletion,
+observations with obviously invalid placeholder case numbers, municipal
+court cases that do not use the same pretrial procedures, and cases
+dismissed because of a defendant's death. These choices were intended to
+produce a sample that more closely reflects the population of interest:
+defendant-cases subject to meaningful pretrial supervision and release
+decisions.
+
+After cleaning, the unit of analysis in the merged dataset is the
+\textbf{defendant-case}. In other words, each observation represents one
+defendant appearing in one case. This is the level at which I define
+detention status, supervision assignment, and downstream outcomes. For
+one visualization that compares release and detention patterns across
+judges, I further collapsed the data to one row per defendant-case when
+assigning a judge identifier, because the goal of that figure is simply
+to compare judges' observed release and detention patterns rather than
+to preserve all lower-level administrative detail.
+
+\section{Data Processing and Variable
+Construction}\label{data-processing-and-variable-construction}
+
+A substantial part of the cleaning process involved resolving
+data-quality issues and constructing usable indicators. I inspected
+observations with impossible or suspicious values, especially negative
+values for days on supervision. In a small number of cases, I corrected
+the supervision start date manually when the record clearly reflected a
+data-entry problem. After those corrections, I dropped the remaining
+observation with negative supervision duration. This ensured that the
+supervision-length variables were internally consistent.
+
+I then constructed several key variables for the analysis. First, I
+created a \textbf{detained} indicator equal to one when no release date
+was recorded and zero otherwise. Next, I coded supervision-assignment
+categories based on the recorded release decision. I grouped ``Reminder
+Only'' together with Level 1 supervision, since it is the least
+intensive monitored category and conceptually closest to passive
+supervision. From these assignments, I created separate indicators for
+released defendants and detained defendants by supervision level. I also
+created a proxy for release on recognizance using the bond variables and
+release date, though that measure is not the main focus of the current
+visual analysis.
+
+The main outcome variables are three binary indicators: -
+\textbf{Failure to Appear (FTA)}: whether the disposition reasons
+indicate failure to appear. - \textbf{New Arrest}: whether the
+disposition reasons indicate a new arrest during the pretrial period. -
+\textbf{Sentenced}: whether the disposition reasons indicate that the
+defendant was sentenced.
+
+Because these outcomes are binary, the descriptive ``outcome rates''
+shown later in the report can be interpreted as proportions of
+defendant-cases experiencing each outcome.
+
+\section{Missing Data, Transformations, and Measurement
+Choices}\label{missing-data-transformations-and-measurement-choices}
+
+The main transformations in this project were categorical recodings and
+binary indicator construction rather than continuous-variable
+normalization or winsorization. My current emphasis is on making the
+institutional categories interpretable. In particular, I transformed the
+raw release decision field into a small set of supervision categories:
+no monitoring, Level 1, Level 2, and Level 3. I then separated those
+into released and detained categories to distinguish between assigned
+supervision intensity and actual release status.
+
+Missing data were handled conservatively. In most cases, I either
+filtered out observations that were clearly invalid or treated
+missingness as informative only when the administrative structure made
+that interpretation reasonable. For example, the detained variable
+relies on whether a release date is missing. This is a useful proxy, but
+it should still be interpreted carefully because missing release
+information in administrative data can reflect either true detention or
+incomplete recordkeeping. Similarly, outcome rates were calculated using
+nonmissing values for each outcome, so denominators can differ slightly
+across outcomes.
+
+I did not apply trimming or winsorization because the main variables of
+interest in these visualizations are indicators and categories rather
+than continuous variables with extreme outliers. The more important
+issue at this stage is classification: deciding how to map raw
+administrative fields into meaningful supervision and outcome measures.
+These choices are exploratory and transparent, and they can be refined
+later as I move toward regression analysis and a possible
+instrumental-variables design.
+
+\section{Visualizations}\label{visualizations}
+
+\subsection{Release and Detention Outcomes by Judge and
+Caseload}\label{release-and-detention-outcomes-by-judge-and-caseload}
+
+The first figure shows the number of released and detained
+defendant-cases by judge, separately within caseloads. Judge names were
+cleaned and harmonized before assigning anonymous judge identifiers. I
+restricted the figure to judge-caseload cells with more than thirty
+defendant-cases so that the chart would emphasize more stable patterns
+rather than very small samples.
+
+\begin{figure}
+\centering
+\pandocbounded{\includegraphics[keepaspectratio]{Output/release_detention_by_judge_caseload.png}}
+\caption{Release and detention outcomes by judge and caseload}
+\end{figure}
+
+This figure is useful for descriptive purposes because it shows that
+release and detention patterns vary across judges within caseloads. That
+variation is one reason a judge-based design may eventually be
+informative. At the same time, the figure should not be interpreted
+causally. Different judges may handle different kinds of cases or
+defendants, and caseload composition may differ in ways that are
+correlated with both judicial behavior and outcomes. Still, the chart
+shows that the data contain meaningful cross-judge variation worth
+exploring further.
+
+\subsection{Outcome Rates Across Released and Detained Supervision
+Levels}\label{outcome-rates-across-released-and-detained-supervision-levels}
+
+The next figure compares the rates of failure to appear, new arrest, and
+sentencing across supervision levels for released and detained
+defendant-cases. Because these are rates, each bar can be interpreted as
+the share of defendant-cases in that group that experienced the outcome.
+
+\begin{figure}
+\centering
+\pandocbounded{\includegraphics[keepaspectratio]{Output/level_outcome_rate_graph.png}}
+\caption{Outcome rates across released and detained supervision levels}
+\end{figure}
+
+This figure is the most directly connected to my research question. It
+summarizes how outcomes differ across increasingly intensive supervision
+categories. In interpreting it, the key point is not yet whether harsher
+supervision causes better or worse outcomes, but whether there is a
+visible empirical gradient. If higher supervision levels are associated
+with higher rates of adverse outcomes, that may reflect selection of
+riskier defendants into harsher categories, a burdensome effect of
+supervision itself, or both. If the pattern instead weakens or reverses
+for some outcomes, that may suggest more nuanced institutional dynamics.
+
+The distinction between released and detained categories is also
+important. Released defendants face direct opportunities for failure to
+appear and new arrest in ways that detained defendants do not, so
+comparing the two panels helps clarify how much of the observed pattern
+comes from supervision level versus release status more generally.
+
+\subsection{Counts of Positive Outcomes Across Released and Detained
+Supervision
+Levels}\label{counts-of-positive-outcomes-across-released-and-detained-supervision-levels}
+
+The final figure presents the same outcomes using counts rather than
+rates. This complements the previous graph because percentages can
+sometimes hide differences in sample size, while counts make the scale
+of the underlying events more visible.
+
+\begin{figure}
+\centering
+\pandocbounded{\includegraphics[keepaspectratio]{Output/level_outcome_count_graph.png}}
+\caption{Counts of positive outcomes across released and detained
+supervision levels}
+\end{figure}
+
+This figure helps place the rate comparisons in context. A high rate
+based on a very small number of cases should be interpreted differently
+from a similar rate observed in a much larger group. Looking at both
+rates and counts together helps guard against over-interpreting unstable
+comparisons. In my case, the count figure is mainly useful as a check on
+how much data support each supervision category and outcome combination.
+
+\section{Interpretation and Preliminary
+Takeaways}\label{interpretation-and-preliminary-takeaways}
+
+Taken together, the figures suggest that the data contain meaningful
+variation in both judicial release behavior and defendant outcomes
+across supervision categories. The outcome-rate figure is especially
+useful for showing how failure to appear, new arrest, and sentencing
+differ across released and detained supervision levels. The patterns are
+descriptive, but they are informative for thinking about how to define
+treatment and outcomes in later regression work.
+
+A central challenge in interpreting these patterns is selection.
+Defendants assigned to harsher supervision are unlikely to be comparable
+to defendants assigned to less intensive supervision. Higher-risk
+defendants may be sorted into more restrictive categories precisely
+because they are expected to have worse outcomes. As a result, the
+current visualizations should be read as documenting associations rather
+than treatment effects. Even so, they are valuable for showing that the
+main variables are behaving in interpretable ways and that the data
+appear rich enough to support more formal empirical work.
+
+\section{Conclusion}\label{conclusion}
+
+This report explored whether harsher pretrial supervision levels are
+associated with defendant outcomes such as failure to appear, new
+arrest, and sentencing. After cleaning and restricting the
+administrative case data, I constructed a defendant-case dataset and
+created indicators for detention status, supervision level, and
+downstream outcomes. I then used a small set of focused visualizations
+to describe cross-judge variation in release decisions and differences
+in outcome patterns across supervision categories.
+
+The descriptive evidence shows that supervision level and release status
+are meaningfully related to observed outcomes, but these relationships
+should not yet be interpreted causally. The next step in the project is
+to move from descriptive comparisons to a more structured regression
+framework, and eventually to an instrumental-variables approach that
+uses judge assignment variation more formally. For now, the visual
+analysis provides a clear and organized foundation for that next stage.
+
+\end{document}
